@@ -75,3 +75,52 @@
   python -m pytest -q
 ```
 
+## Docker 运行与数据持久化
+
+以下命令在项目根目录的 PowerShell 中执行，需要先启动 Docker Desktop。
+
+### 1. 构建镜像
+
+```powershell
+docker build -t task-manager-api:latest .
+```
+
+### 2. 使用命名 volume 启动容器
+
+```powershell
+docker run -d --name task-manager-persist-1 -p 8001:8000 --mount source=task-manager-data,target=/data -e DATABASE_URL=sqlite:////data/tasks.db task-manager-api:latest
+```
+
+打开接口文档：http://localhost:8001/docs
+
+- `task-manager-data` 是命名 volume，首次使用时自动创建。
+- volume 挂载到容器内的 `/data` 目录。
+- `DATABASE_URL` 指定 SQLite 数据库文件为 `/data/tasks.db`。
+- 未设置 `DATABASE_URL` 时，默认使用 `sqlite:///tasks.db`。
+
+### 3. 验证数据持久化
+
+通过接口文档中的 `POST /tasks` 创建任务，标题设置为 `volume-persistence-test`，记录返回的 `id`。
+
+停止并删除旧容器：
+
+```powershell
+docker stop task-manager-persist-1
+docker rm task-manager-persist-1
+```
+
+使用同一个 volume 启动新容器：
+
+```powershell
+docker run -d --name task-manager-persist-2 -p 8001:8000 --mount source=task-manager-data,target=/data -e DATABASE_URL=sqlite:////data/tasks.db task-manager-api:latest
+```
+
+查询原任务（将 `1` 替换为实际返回的任务 ID）：
+
+```powershell
+curl.exe http://localhost:8001/tasks/1
+```
+
+如果仍能查询到原任务，说明数据在删除并重建容器后成功保留。
+
+删除容器不会删除这里使用的命名 volume；保留数据需要保留 `task-manager-data`。
