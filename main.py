@@ -3,29 +3,33 @@ from sqlmodel import Session, select
 
 from database import create_db_and_tables, get_session
 from models import Task
-
+from schemas import TaskCreate, TaskRead
 
 create_db_and_tables()
 
 app = FastAPI()
 
-@app.get("/tasks")
+@app.get("/tasks", response_model=list[TaskRead])
 def get_tasks(session: Session = Depends(get_session)):
     statement = select(Task)
     tasks = session.exec(statement).all()
     return tasks
 
-@app.post("/tasks")
+@app.post("/tasks", response_model=TaskRead)
 def create_task(
-    task: Task,
+    task_data: TaskCreate,
     session: Session = Depends(get_session)
 ):
+    task = Task(
+        title=task_data.title,
+        completed=task_data.completed
+    )
     session.add(task)
     session.commit()
     session.refresh(task)
     return task
 
-@app.get("/tasks/{task_id}")
+@app.get("/tasks/{task_id}", response_model=TaskRead)
 def get_task(
         task_id: int,
         session: Session = Depends(get_session)
@@ -37,7 +41,7 @@ def get_task(
     return task
 
 
-@app.patch("/tasks/{task_id}/complete")
+@app.patch("/tasks/{task_id}/complete", response_model=TaskRead)
 def complete_task(
     task_id: int,
     session: Session = Depends(get_session)
