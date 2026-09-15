@@ -124,3 +124,17 @@ curl.exe http://localhost:8001/tasks/1
 如果仍能查询到原任务，说明数据在删除并重建容器后成功保留。
 
 删除容器不会删除这里使用的命名 volume；保留数据需要保留 `task-manager-data`。
+
+## 使用 Docker Compose
+
+前提：Docker Desktop 已启动，已有命名 volume `task-manager-data`，且本机 8001 端口空闲。
+
+构建镜像并在后台启动：
+
+```powershell
+docker compose up -d --build
+```
+
+访问 API 文档：http://localhost:8001/docs
+
+Compose 使用外部 volume `task-manager-data`，将其挂载到容器的 `/data`，数据库路径为 `/data/tasks.db`。
