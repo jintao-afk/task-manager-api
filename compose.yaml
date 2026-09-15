@@ -1,0 +1,17 @@
+services:
+  api:
+    build: .
+    ports:
+      - "8001:8000"
+    environment:
+      DATABASE_URL: sqlite:////data/tasks.db
+    volumes:
+      - task-manager-data:/data
+
+
+volumes:
+  task-manager-data:
+    external: true
+
+
+
