@@ -15,7 +15,7 @@ def get_tasks(session: Session = Depends(get_session)):
     tasks = session.exec(statement).all()
     return tasks
 
-@app.post("/tasks", response_model=TaskRead)
+@app.post("/tasks", response_model=TaskRead, status_code = 201)
 def create_task(
     task_data: TaskCreate,
     session: Session = Depends(get_session)
